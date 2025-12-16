@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>the CU eagle editorial</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+        #newsletterBtn { background-color: #4CAF50; color: white; border: none; }
+        #paperbackBtn { background-color: #008CBA; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to CU eagle!</h1>
+        <p>Choose an option below:</p>
+
+        <button id="newsletterBtn">
+            📰 Subscribe to Our Weekly Newsletter (₵5)
+        </button>
+
+        <button id="paperbackBtn">
+            📖 Buy a Paperback Version (₵15.00)
+        </button>
+
+        <p>Powered by Paystack & Mobile Money.</p>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script> 
+    <script>
+        // REPLACE WITH YOUR ACTUAL PAYSTACK PUBLIC KEY
+        const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxx'; 
+        const USER_EMAIL = 'testuser@example.com'; // In a real app, this would come from a form
+
+        function payWithPaystack(amountInKobo, itemDescription) {
+            // Paystack requires amount in Kobo (Nigeria) or Pesewas (Ghana) 
+            // 500 = 5.00 (e.g., NGN 5.00 or GHS 5.00)
+            
+            let handler = Paystack.newTransaction({
+                key: PAYSTACK_PUBLIC_KEY, 
+                email: USER_EMAIL, 
+                amount: amountInKobo, 
+                // currency: 'GHS', // Optional: Set if you are dealing with multiple currencies
+                ref: '' + Math.floor((Math.random() * 1000000000) + 1), // Unique transaction reference
+                
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "Product",
+                            variable_name: "product_id",
+                            value: itemDescription 
+                        }
+                    ]
+                },
+                
+                // IMPORTANT: The callback function is where you verify the payment!
+                callback: function(response){
+                    // This is where you send the transaction reference (response.reference) 
+                    // to your backend server for verification (Step 3).
+                    alert('Payment complete! Paystack Reference: ' + response.reference + 
+                          '. Now contacting server for final verification...');
+                    
+                    // In a real app, you would make an AJAX call here:
+                    // verifyPayment(response.reference); 
+                },
+                
+                onClose: function(){
+                    alert('Transaction cancelled by user.');
+                }
+            });
+
+            handler.openIframe();
+        }
+
+        document.getElementById('newsletterBtn').addEventListener('click', () => {
+            // $5.00 USD equivalent (e.g. 500 GHS Pesewas or 500 NGN Kobo)
+            payWithPaystack(500, "Weekly Newsletter Subscription"); 
+        });
+
+        document.getElementById('paperbackBtn').addEventListener('click', () => {
+            // $15.00 USD equivalent (e.g. 1500 GHS Pesewas or 1500 NGN Kobo)
+            payWithPaystack(1500, "Paperback Book Purchase"); 
+        });
+    </script>
+</body>
+</html>
